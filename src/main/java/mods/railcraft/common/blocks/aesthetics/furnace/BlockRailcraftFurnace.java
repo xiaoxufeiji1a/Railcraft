@@ -5,6 +5,8 @@ import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
@@ -14,6 +16,12 @@ public class BlockRailcraftFurnace extends BlockContainer {
 
     public BlockRailcraftFurnace() {
         super(Material.rock);
+    }
+
+    @Override
+    public void onBlockPlacedBy(World world, int x, int y, int z, EntityLivingBase entityLivingBase, ItemStack itemStack) {
+        int itemDamage = itemStack.getItemDamage();
+        world.setBlockMetadataWithNotify(x, y, z, itemDamage, 2);
     }
 
     @Override
