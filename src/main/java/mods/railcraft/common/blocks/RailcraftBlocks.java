@@ -8,8 +8,8 @@
  */
 package mods.railcraft.common.blocks;
 
-import cpw.mods.fml.common.registry.GameRegistry;
 import java.util.Arrays;
+import mods.railcraft.common.blocks.aesthetics.furnace.BlockRailcraftFurnace;
 import net.minecraft.block.Block;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.ItemStack;
@@ -48,6 +48,7 @@ public class RailcraftBlocks {
     private static Block blockTrack;
     private static Block blockRailElevator;
     private static Block blockSignal;
+    private static Block blockFurnace;
 
     public static void registerBlockTrack() {
         if (blockTrack == null && RailcraftConfig.isBlockEnabled("track")) {
@@ -241,4 +242,14 @@ public class RailcraftBlocks {
         return blockSignal;
     }
 
+    public static void registerBlockFurnace() {
+        if (blockFurnace == null && RailcraftConfig.isBlockEnabled("furnace")) {
+            blockFurnace = new BlockRailcraftFurnace();
+            RailcraftRegistry.register(blockFurnace);
+        }
+    }
+
+    public static Block getBlockFurnace() {
+        return blockFurnace;
+    }
 }
