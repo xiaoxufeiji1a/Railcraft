@@ -10,6 +10,8 @@ package mods.railcraft.common.modules;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import mods.railcraft.common.blocks.aesthetics.furnace.BlockRailcraftFurnace;
 import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.oredict.OreDictionary;
@@ -347,6 +349,12 @@ public class ModuleFactory extends RailcraftModule {
                 }
             }
 
+        }
+
+        BlockRailcraftFurnace.registerBlock();
+
+        if (BlockRailcraftFurnace.getBlock() != null) {
+            // todo crafting recipes
         }
     }
 

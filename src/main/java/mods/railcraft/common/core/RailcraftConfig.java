@@ -442,6 +442,7 @@ public class RailcraftConfig {
         loadBlockProperty("firestone.recharge");
         loadBlockProperty("fluid.creosote");
         loadBlockProperty("fluid.steam");
+        loadBlockProperty("furnace");
         loadBlockProperty("glass");
         loadBlockProperty("residual.heat");
 
