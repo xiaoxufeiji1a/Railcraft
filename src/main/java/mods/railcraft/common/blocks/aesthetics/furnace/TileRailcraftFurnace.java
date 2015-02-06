@@ -8,7 +8,7 @@ import net.minecraftforge.common.util.ForgeDirection;
 public class TileRailcraftFurnace extends TileEntityFurnace {
 
     private final EnumFurnace furnace;
-    private ForgeDirection facingDirection;
+    private ForgeDirection facingDirection = ForgeDirection.NORTH; // todo remove default value
 
     public TileRailcraftFurnace(EnumFurnace furnace) {
         this.furnace = furnace;

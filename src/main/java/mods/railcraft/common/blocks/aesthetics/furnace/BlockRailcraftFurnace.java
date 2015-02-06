@@ -16,8 +16,10 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IIcon;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.ForgeDirection;
 
 import java.util.List;
 
@@ -54,9 +56,15 @@ public class BlockRailcraftFurnace extends BlockContainer {
         int itemDamage = itemStack.getItemDamage();
         world.setBlockMetadataWithNotify(x, y, z, itemDamage, 2);
         TileEntity tileEntity = world.getTileEntity(x, y, z);
-        entityLivingBase.
         if (tileEntity != null && tileEntity instanceof TileRailcraftFurnace)
-            ((TileRailcraftFurnace) tileEntity).setFacingDirection();
+            ((TileRailcraftFurnace) tileEntity).setFacingDirection(ForgeDirection.NORTH); // todo facing
+    }
+
+    @Override
+    public ItemStack getPickBlock(MovingObjectPosition target, World world, int x, int y, int z) {
+        int meta = world.getBlockMetadata(x, y, z);
+        EnumFurnace furnace = EnumFurnace.fromMeta(meta);
+        return furnace.getItemStack();
     }
 
     @Override
