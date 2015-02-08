@@ -8,6 +8,8 @@
  */
 package mods.railcraft.client.gui;
 
+import mods.railcraft.common.blocks.aesthetics.furnace.TileRailcraftFurnace;
+import net.minecraft.client.gui.inventory.GuiFurnace;
 import org.apache.logging.log4j.Level;
 
 import mods.railcraft.common.blocks.RailcraftTileEntity;
@@ -156,6 +158,8 @@ public class FactoryGui {
                     return new GuiLocomotiveSteamSolid(inv, (EntityLocomotiveSteamSolid) obj);
                 case LOCO_ELECTRIC:
                     return new GuiLocomotiveElectric(inv, (EntityLocomotiveElectric) obj);
+                case FURNACE:
+                    return new GuiRailcraftFurnace(inv, ((TileRailcraftFurnace) obj));
                 default:
                     return ModuleManager.getGuiScreen(gui, inv, obj, world, x, y, z);
             }
