@@ -9,9 +9,13 @@
 package mods.railcraft.common.plugins.thaumcraft;
 
 import cpw.mods.fml.common.Loader;
+
 import java.util.HashMap;
 import java.util.Map;
+
 import mods.railcraft.common.blocks.aesthetics.brick.BlockBrick;
+import mods.railcraft.common.blocks.aesthetics.brick.BrickVariant;
+import mods.railcraft.common.blocks.aesthetics.brick.EnumBrick;
 import mods.railcraft.common.blocks.aesthetics.cube.EnumCube;
 import mods.railcraft.common.blocks.aesthetics.glass.BlockStrengthGlass;
 import mods.railcraft.common.blocks.anvil.BlockRCAnvil;
@@ -47,15 +51,13 @@ import thaumcraft.api.research.ResearchCategories;
 import thaumcraft.api.research.ResearchPage;
 
 /**
- *
  * @author CovertJaguar <http://www.railcraft.info/>
  */
 public class ThaumcraftPlugin {
-
     public static final String RESEARCH_CATEGORY = "RAILCRAFT";
     private static final Map<String, Item> itemCache = new HashMap<String, Item>();
     private static final Map<String, Boolean> itemCacheFlag = new HashMap<String, Boolean>();
-    private static ResearchPage crowbarResearchPage;
+    private static Map<String, ResearchPage> researchPages = new HashMap<String, ResearchPage>();
     private static Boolean modLoaded = null;
 
     public static ItemStack getItem(String tag, int meta) {
@@ -79,18 +81,21 @@ public class ThaumcraftPlugin {
         return null;
     }
 
-    public static void setupReseach() {
+    public static void setupResearch() {
         ResearchCategories.registerCategory(RESEARCH_CATEGORY, new ResourceLocation("railcraft", "textures/items/tool.crowbar.magic.png"), new ResourceLocation("thaumcraft", "textures/gui/gui_researchback.png"));
     }
 
-    public static ResearchPage createResearchPage(String key, int pageNum) {
+    private static ResearchPage createResearchPage(String key, int pageNum) {
         return new ResearchPage(LocalizationPlugin.translate(String.format("thaumcraft.research.%s.page.%d", key, pageNum)).replace("\n", "<BR>").replace("---", "<LINE>").replace("{img}", "<IMG>").replace("{/img}", "</IMG>"));
     }
 
-    public static ResearchPage getCrowbarResearchPage() {
-        if (crowbarResearchPage == null)
-            crowbarResearchPage = createResearchPage("RC_Crowbar", 1);
-        return crowbarResearchPage;
+    public static ResearchPage getResearchPage(String researchTag) {
+        ResearchPage page = researchPages.get(researchTag);
+        if (page == null) {
+            page = createResearchPage(researchTag, 1);
+            researchPages.put(researchTag, page);
+        }
+        return page;
     }
 
     public static void registerAspects() {
@@ -99,14 +104,14 @@ public class ThaumcraftPlugin {
             AspectList steamAspects = new AspectList().add(Aspect.WATER, 3).add(Aspect.MECHANISM, 2).add(Aspect.FIRE, 3);
             AspectList tankAspects = new AspectList().add(Aspect.VOID, 4).add(Aspect.WATER, 4);
 
-            addBrickAspects(BlockBrick.abyssal, Aspect.DARKNESS);
-            addBrickAspects(BlockBrick.bleachedbone, Aspect.DEATH);
-            addBrickAspects(BlockBrick.bloodstained, Aspect.FLESH);
-            addBrickAspects(BlockBrick.frostbound, Aspect.COLD);
-            addBrickAspects(BlockBrick.infernal, 2, Aspect.FIRE, Aspect.SOUL);
-            addBrickAspects(BlockBrick.nether, Aspect.FIRE);
-            addBrickAspects(BlockBrick.quarried, Aspect.LIGHT);
-            addBrickAspects(BlockBrick.sandy, Aspect.EARTH);
+            addBrickAspects(EnumBrick.ABYSSAL, Aspect.DARKNESS);
+            addBrickAspects(EnumBrick.BLEACHEDBONE, Aspect.DEATH);
+            addBrickAspects(EnumBrick.BLOODSTAINED, Aspect.FLESH);
+            addBrickAspects(EnumBrick.FROSTBOUND, Aspect.COLD);
+            addBrickAspects(EnumBrick.INFERNAL, 2, Aspect.FIRE, Aspect.SOUL);
+            addBrickAspects(EnumBrick.NETHER, Aspect.FIRE);
+            addBrickAspects(EnumBrick.QUARRIED, Aspect.LIGHT);
+            addBrickAspects(EnumBrick.SANDY, Aspect.EARTH);
 
             addItemAspect(EnumCube.ABYSSAL_STONE.getItem(), new AspectList().add(Aspect.EARTH, 4).add(Aspect.DARKNESS, 2));
             addItemAspect(EnumCube.QUARRIED_STONE.getItem(), new AspectList().add(Aspect.EARTH, 4).add(Aspect.LIGHT, 2));
@@ -235,11 +240,12 @@ public class ThaumcraftPlugin {
         ThaumcraftApi.registerEntityTag(cart.getTag(), aspects);
     }
 
-    private static void addBrickAspects(Block block, Aspect baseAspect) {
-        addBrickAspects(block, 4, baseAspect);
+    private static void addBrickAspects(EnumBrick brick, Aspect baseAspect) {
+        addBrickAspects(brick, 4, baseAspect);
     }
 
-    private static void addBrickAspects(Block block, int baseAmount, Aspect... baseAspects) {
+    private static void addBrickAspects(EnumBrick brick, int baseAmount, Aspect... baseAspects) {
+        Block block = brick.getBlock();
         if (block == null)
             return;
         AspectList aspects = new AspectList().add(Aspect.EARTH, 4);
@@ -247,9 +253,9 @@ public class ThaumcraftPlugin {
             aspects.add(a, baseAmount);
         }
         ThaumcraftApi.registerObjectTag(new ItemStack(block, 1, OreDictionary.WILDCARD_VALUE), aspects);
-        ThaumcraftApi.registerObjectTag(new ItemStack(block, 1, BlockBrick.BrickVariant.COBBLE.ordinal()), aspects.copy().remove(Aspect.EARTH, 2).add(Aspect.ENTROPY, 2));
-        ThaumcraftApi.registerObjectTag(new ItemStack(block, 1, BlockBrick.BrickVariant.BLOCK.ordinal()), aspects.copy().remove(Aspect.EARTH, 2).add(Aspect.ORDER, 2));
-        ThaumcraftApi.registerObjectTag(new ItemStack(block, 1, BlockBrick.BrickVariant.ETCHED.ordinal()), aspects.copy().remove(Aspect.EARTH, 2).add(Aspect.GREED, 2));
+        ThaumcraftApi.registerObjectTag(brick.get(BrickVariant.COBBLE), aspects.copy().remove(Aspect.EARTH, 2).add(Aspect.ENTROPY, 2));
+        ThaumcraftApi.registerObjectTag(brick.get(BrickVariant.BLOCK), aspects.copy().remove(Aspect.EARTH, 2).add(Aspect.ORDER, 2));
+        ThaumcraftApi.registerObjectTag(brick.get(BrickVariant.ETCHED), aspects.copy().remove(Aspect.EARTH, 2).add(Aspect.GREED, 2));
     }
 
     public static ToolMaterial getThaumiumToolMaterial() {
@@ -275,5 +281,4 @@ public class ThaumcraftPlugin {
             modLoaded = Loader.isModLoaded("Thaumcraft");
         return modLoaded;
     }
-
 }

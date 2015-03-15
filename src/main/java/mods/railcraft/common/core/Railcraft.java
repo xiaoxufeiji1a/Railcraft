@@ -17,26 +17,18 @@ import cpw.mods.fml.common.Mod.Instance;
 import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.*;
 import cpw.mods.fml.common.registry.GameRegistry;
+
 import java.io.File;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.Set;
+
+import mods.railcraft.common.commands.RootCommand;
+import mods.railcraft.common.modules.ModuleCore;
+import net.minecraft.command.CommandHandler;
 import org.apache.logging.log4j.Level;
-import mods.railcraft.common.plugins.forge.RailcraftRegistry;
 import mods.railcraft.api.crafting.IRockCrusherRecipe;
 import mods.railcraft.api.crafting.RailcraftCraftingManager;
 import mods.railcraft.api.fuel.FuelManager;
-import mods.railcraft.common.blocks.aesthetics.cube.EnumCube;
 import mods.railcraft.common.blocks.aesthetics.lantern.BlockLantern;
-import mods.railcraft.common.blocks.machine.alpha.EnumMachineAlpha;
-import mods.railcraft.common.blocks.machine.beta.EnumMachineBeta;
-import mods.railcraft.common.blocks.machine.gamma.EnumMachineGamma;
-import mods.railcraft.common.blocks.aesthetics.post.EnumPost;
 import mods.railcraft.common.blocks.anvil.BlockRCAnvil;
-import mods.railcraft.common.blocks.machine.IEnumMachine;
-import mods.railcraft.common.blocks.machine.delta.EnumMachineDelta;
-import mods.railcraft.common.blocks.machine.epsilon.EnumMachineEpsilon;
-import mods.railcraft.common.blocks.signals.EnumSignal;
 import mods.railcraft.common.carts.LinkageManager;
 import mods.railcraft.common.fluids.RailcraftFluids;
 import mods.railcraft.common.items.ItemMagnifyingGlass;
@@ -57,31 +49,31 @@ import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 
 @Mod(modid = Railcraft.MOD_ID, name = "Railcraft",
-     version = Railcraft.VERSION,
-     certificateFingerprint = "a0c255ac501b2749537d5824bb0f0588bf0320fa",
-     acceptedMinecraftVersions = "[1.7.10,1.8)",
-     dependencies = "required-after:Forge@[10.13.0.1199,);"
-     + "after:BuildCraft|Core[6.1.7,);"
-     + "after:BuildCraft|Energy;"
-     + "after:BuildCraft|Builders;"
-     + "after:BuildCraft|Factory;"
-     + "after:BuildCraftAPI|statements[1.0,);"
-     + "after:BuildCraftAPI|transport[1.0,);"
-     + "after:Forestry[3,);"
-     + "after:Thaumcraft;"
-     + "after:IC2@[2.2,)")
+        version = Railcraft.VERSION,
+        certificateFingerprint = "a0c255ac501b2749537d5824bb0f0588bf0320fa",
+        acceptedMinecraftVersions = "[1.7.10,1.8)",
+        dependencies = "required-after:Forge@[10.13.0.1199,);"
+                + "after:BuildCraft|Core[6.1.7,);"
+                + "after:BuildCraft|Energy;"
+                + "after:BuildCraft|Builders;"
+                + "after:BuildCraft|Factory;"
+                + "after:BuildCraftAPI|statements[1.0,);"
+                + "after:BuildCraftAPI|transport[1.0,);"
+                + "after:Forestry[3,);"
+                + "after:Thaumcraft;"
+                + "after:IC2@[2.2,)")
 public final class Railcraft {
-
     public static final String MOD_ID = "Railcraft";
     public static final String VERSION = "@VERSION@";
     public static final String MC_VERSION = "[1.7.10,1.8)";
+    public static final RootCommand rootCommand = new RootCommand();
     @Instance("Railcraft")
     public static Railcraft instance;
-    private File configFolder;
-//    public int totalMultiBlockUpdates = 0;
+    //    public int totalMultiBlockUpdates = 0;
 //    public int ticksSinceLastMultiBlockPrint = 0;
     @SidedProxy(clientSide = "mods.railcraft.client.core.ClientProxy", serverSide = "mods.railcraft.common.core.CommonProxy")
     public static CommonProxy proxy;
+    private File configFolder;
 
     public static CommonProxy getProxy() {
         return proxy;
@@ -120,7 +112,7 @@ public final class Railcraft {
                     continue;
                 }
                 BallastRegistry.registerBallast(Block.getBlockFromName(blockName), metadata);
-                Game.log(Level.INFO, String.format("Mod %s registered %s as a valid ballast", mess.getSender(), mess.getStringValue()));
+                Game.log(Level.DEBUG, String.format("Mod %s registered %s as a valid ballast", mess.getSender(), mess.getStringValue()));
             } else if (mess.key.equals("boiler-fuel-liquid")) {
                 String[] tokens = Iterables.toArray(splitter.split(mess.getStringValue()), String.class);
                 if (tokens.length != 2) {
@@ -134,7 +126,7 @@ public final class Railcraft {
                     continue;
                 }
                 FuelManager.addBoilerFuel(fluid, fuel);
-                Game.log(Level.INFO, String.format("Mod %s registered %s as a valid liquid Boiler fuel", mess.getSender(), mess.getStringValue()));
+                Game.log(Level.DEBUG, String.format("Mod %s registered %s as a valid liquid Boiler fuel", mess.getSender(), mess.getStringValue()));
             } else if (mess.key.equals("rock-crusher")) {
                 NBTTagCompound nbt = mess.getNBTValue();
                 ItemStack input = ItemStack.loadItemStackFromNBT(nbt.getCompoundTag("input"));
@@ -200,6 +192,12 @@ public final class Railcraft {
     }
 
     @Mod.EventHandler
+    public void serverStarting(FMLServerStartingEvent event) {
+        CommandHandler commandManager = (CommandHandler) event.getServer().getCommandManager();
+        commandManager.registerCommand(rootCommand);
+    }
+
+    @Mod.EventHandler
     public void serverCleanUp(FMLServerStoppingEvent event) {
         LinkageManager.reset();
     }
@@ -248,12 +246,10 @@ public final class Railcraft {
     private void remap(Block block, FMLMissingMappingsEvent.MissingMapping mapping) {
         mapping.remap(block);
         Game.log(Level.WARN, "Remapping block " + mapping.name + " to " + getModId() + ":" + MiscTools.cleanTag(block.getUnlocalizedName()));
-
     }
 
     private void remap(Item item, FMLMissingMappingsEvent.MissingMapping mapping) {
         mapping.remap(item);
         Game.log(Level.WARN, "Remapping item " + mapping.name + " to " + getModId() + ":" + MiscTools.cleanTag(item.getUnlocalizedName()));
     }
-
 }

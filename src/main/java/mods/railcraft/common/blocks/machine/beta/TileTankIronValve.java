@@ -48,10 +48,12 @@ public class TileTankIronValve extends TileTankBase implements IFluidHandler, IC
     private static final int FLOW_RATE = FluidHelper.BUCKET_VOLUME;
     private static final byte FILL_INCREMENT = 1;
     private final StandardTank fillTank = new StandardTank(20);
+    private int previousComparatorValue = 0;
 
     private boolean previousStructureValidity;
 
     public TileTankIronValve() {
+        fillTank.setHidden(true);
         tankManager.add(fillTank);
     }
 
@@ -136,18 +138,19 @@ public class TileTankIronValve extends TileTankBase implements IFluidHandler, IC
         }
 
         TileMultiBlock masterBlock = getMasterBlock();
-        if (masterBlock != null && masterBlock instanceof TileTankBase) {
+        if (masterBlock instanceof TileTankBase) {
             TileTankBase masterTileTankBase = (TileTankBase) masterBlock;
-            if (masterTileTankBase.comparatorValueChanged())
-                notifyBlocksOfNeighborChange();
+            int compValue = masterTileTankBase.getComparatorValue();
+            if (previousComparatorValue != compValue) {
+                previousComparatorValue = compValue;
+                getWorld().func_147453_f(getX(), getY(), getZ(), null);
+            }
         }
 
         if (previousStructureValidity != isStructureValid())
-            notifyBlocksOfNeighborChange();
+            getWorld().func_147453_f(getX(), getY(), getZ(), null);
         previousStructureValidity = isStructureValid();
     }
-
-
 
     @Override
     public IIcon getIcon(int side) {
@@ -185,10 +188,9 @@ public class TileTankIronValve extends TileTankBase implements IFluidHandler, IC
         if (getPatternPositionY() - getPattern().getMasterOffsetY() != 1)
             return null;
         TankManager tMan = getTankManager();
-        if (tMan != null) {
-//            maxDrain = Math.min(maxDrain, FLOW_RATE);
+        if (tMan != null)
+            //            maxDrain = Math.min(maxDrain, FLOW_RATE);
             return tMan.drain(0, maxDrain, doDrain);
-        }
         return null;
     }
 
@@ -223,7 +225,7 @@ public class TileTankIronValve extends TileTankBase implements IFluidHandler, IC
     @Override
     public int getComparatorInputOverride(World world, int x, int y, int z, int side) {
         TileMultiBlock masterBlock = getMasterBlock();
-        if (masterBlock != null && masterBlock instanceof TileTankBase)
+        if (masterBlock instanceof TileTankBase)
             return ((TileTankBase) masterBlock).getComparatorValue();
         return 0;
     }

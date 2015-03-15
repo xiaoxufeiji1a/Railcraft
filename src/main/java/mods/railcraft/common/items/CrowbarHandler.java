@@ -10,12 +10,6 @@ package mods.railcraft.common.items;
 
 import com.google.common.collect.MapMaker;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import java.util.Map;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.item.EntityMinecart;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
-import net.minecraftforge.event.entity.player.EntityInteractEvent;
 import mods.railcraft.api.carts.ILinkableCart;
 import mods.railcraft.api.carts.ILinkageManager;
 import mods.railcraft.api.core.items.IToolCrowbar;
@@ -26,9 +20,15 @@ import mods.railcraft.common.modules.ModuleManager;
 import mods.railcraft.common.modules.ModuleManager.Module;
 import mods.railcraft.common.plugins.forge.ChatPlugin;
 import mods.railcraft.common.util.misc.Game;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.item.EntityMinecart;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
+import net.minecraftforge.event.entity.player.EntityInteractEvent;
+
+import java.util.Map;
 
 /**
- *
  * @author CovertJaguar <http://www.railcraft.info>
  */
 public class CrowbarHandler {
@@ -65,17 +65,17 @@ public class CrowbarHandler {
 
                 if (crowbar.canLink(thePlayer, stack, cart)) {
                     boolean linkable = cart instanceof ILinkableCart;
-                    if (!linkable || (linkable && ((ILinkableCart) cart).isLinkable()))
-                        if (linkMap.containsKey(thePlayer)) {
+                    if (!linkable || (linkable && ((ILinkableCart) cart).isLinkable())) {
+                        EntityMinecart last = linkMap.remove(thePlayer);
+                        if (last != null && !last.isDead) {
                             ILinkageManager lm = LinkageManager.instance();
-                            EntityMinecart last = linkMap.remove(thePlayer);
                             if (lm.areLinked(cart, last)) {
                                 lm.breakLink(cart, last);
                                 used = true;
                                 ChatPlugin.sendLocalizedChat(thePlayer, "railcraft.gui.link.broken");
                                 LinkageManager.printDebug("Reason For Broken Link: User removed link.");
                             } else {
-                                used = lm.createLink((EntityMinecart) entity, (EntityMinecart) last);
+                                used = lm.createLink((EntityMinecart) last, (EntityMinecart) entity);
                                 if (used)
                                     ChatPlugin.sendLocalizedChat(thePlayer, "railcraft.gui.link.created");
                             }
@@ -85,6 +85,7 @@ public class CrowbarHandler {
                             linkMap.put(thePlayer, (EntityMinecart) entity);
                             ChatPlugin.sendLocalizedChat(thePlayer, "railcraft.gui.link.started");
                         }
+                    }
                     if (used)
                         crowbar.onLink(thePlayer, stack, cart);
                 } else if (crowbar.canBoost(thePlayer, stack, cart)) {
